@@ -7,7 +7,7 @@ dotenv.config({ path: ".env" });
 
 const CCC = require('./src/ccc-streamer-utilities');
 const log = require('./src/log');
-const krakenMarket = require( './kraken-markets.json')
+const krakenMarket = require( './src/kraken-markets.json')
 
 const streamUrl = "https://streamer.cryptocompare.com/";
 const tradeablePairsKrakenUrl = "https://api.kraken.com/0/public/AssetPairs";
@@ -15,13 +15,29 @@ const fsymCc = "BTC";
 const tsymCc = "USD";
 const subscriptionUrl = "https://min-api.cryptocompare.com/data/subs?fsym=" + fsymCc + "&tsyms=" + tsymCc;
 
-const pairMap = new Map();
 function Cryptocompare (){
 
   this.socket = io(streamUrl, { transports: ['websocket']});
+
   this.start = function () {
+    const assets = krakenMarket.assets;
+    const currencies = krakenMarket.currencies;
+
+    let subs = [];
+    for (let asset of assets) {
+      for (let currency of currencies){
+        subs.push(subscribeToTrades(0,asset, currency, 'Kraken'));
+      }
+    }
+
+    return subs;
+  }
+
+  // subscribe to Tradeable pairs doesnt work...
+  this.getTradeablePairs = function () {
     return getRest(tradeablePairsKrakenUrl).then((tradeablePairs) => {
       let subs = [];
+
       for (pairKey in tradeablePairs.result){
         const capabilities = krakenMarket;
         let market = capabilities.markets.find((market) => {
@@ -60,8 +76,8 @@ function Cryptocompare (){
   });
 
   this.subscribe = function(subs){
-    subs = [];
-    subs.push(subscribeToTrades(0,'ETH', 'EUR', 'Kraken'));
+    //subs = [];
+    //subs.push(subscribeToTrades(0,'ETH', 'EUR', 'Kraken'));
     this.socket.emit('SubAdd', { subs: subs });
     log.debug(subs);
   }
@@ -80,14 +96,16 @@ function Cryptocompare (){
         const key = newTrade.asset + newTrade.currency+  newTrade.exchange;
         const ts = moment.unix(newTrade.timestamp)
         log.debug("cc got " + newTrade.asset + ' ' + newTrade.currency+ ' '+ newTrade.exchange + ' '+ ts.utc().format());
-        pairMap.set(key.toUpperCase(), newTrade);
         //broadcast(newTrade);
     }
   });
 }
 
 const cc = new Cryptocompare();
-cc.connect().then(()=> cc.start()).then((subs)=> cc.subscribe(subs));
+cc.connect().then(()=> {
+  let subs = cc.start();
+  cc.subscribe(subs);
+});
 
 //createServer('cryptocompare', '/tmp/cc.cryptocompareserver').then(()=> {
 

@@ -96,9 +96,15 @@ function Cryptocompare (){
         const key = newTrade.asset + newTrade.currency+  newTrade.exchange;
         const ts = moment.unix(newTrade.timestamp)
         log.debug("cc got " + newTrade.asset + ' ' + newTrade.currency+ ' '+ newTrade.exchange + ' '+ ts.utc().format());
-        //broadcast(newTrade);
+        if (this.connected){
+          broadcast(newTrade);
+        }
     }
   });
+
+  createServer('cryptocompare', "/tmp/cc.cryptocompare").then(()=> {
+    this.connected = true;
+  })
 }
 
 const cc = new Cryptocompare();
@@ -193,7 +199,7 @@ function transformCurrentData(data) {
 function createServer(connectionid, serverpath) {
   ipc.config.id = connectionid;
   ipc.config.retry= 1500;
-  ipc.config.silent= true;
+  ipc.config.silent= false;
 
   const promise = new Promise((resolve, reject) => {
     ipc.serve(serverpath, ()=> {

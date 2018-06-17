@@ -95,7 +95,7 @@ function Cryptocompare (){
     if (newTrade && newTrade.price){
         const key = newTrade.asset + newTrade.currency+  newTrade.exchange;
         const ts = moment.unix(newTrade.timestamp)
-        log.debug("cc got " + newTrade.asset + ' ' + newTrade.currency+ ' '+ newTrade.exchange + ' '+ ts.utc().format());
+        // log.debug("cc got " + newTrade.asset + ' ' + newTrade.currency+ ' '+ newTrade.exchange + ' '+ ts.utc().format());
         if (this.connected){
           broadcast(newTrade);
         }
@@ -215,3 +215,18 @@ function createServer(connectionid, serverpath) {
 function broadcast(data) {
   ipc.server.broadcast('quota', data);
 }
+
+
+/************************************** on Exit Handlers ********************/
+process.on('SIGINT', function() {
+    log.info("caught interrupt signal, quitting");
+    ipc.server.stop();
+    process.exit(2);
+});
+
+//catch uncaught exceptions, trace, then exit normally
+process.on('uncaughtException', (e) => {
+    log.error(e.stack);
+    ipc.server.stop();
+    process.exit(99);
+});

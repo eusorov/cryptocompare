@@ -1,0 +1,24 @@
+{
+  "name": "cryptocompare",
+  "version": "1.0.0",
+  "description": "get quotes from cryptocompare and send them via node-ipc to all listeners",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./cryptocompare"
+  },
+  "keywords": [
+    "cryptocompare"
+  ],
+  "author": "Evgeny Usorov",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^6.0.0",
+    "logzio-nodejs": "^0.4.11",
+    "moment": "^2.22.2",
+    "node-fetch": "^2.1.2",
+    "node-ipc": "^9.1.1",
+    "raven": "^2.6.2",
+    "socket.io-client": "^2.1.1",
+    "winston": "^3.0.0"
+  }
+}

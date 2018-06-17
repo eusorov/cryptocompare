@@ -1,0 +1,6 @@
+# Numerous always-ignore extensions
+*.log
+.env
+
+# Folders & files to ignore
+node_modules

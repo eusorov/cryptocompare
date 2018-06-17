@@ -34,7 +34,6 @@ const winstonLogger = winston.createLogger({
     }),
 
     // send only errors to Sentry (good library for errors fixing)
-    /*
     new SentryTransport({
       token : process.env.SENTRY_DSN,
       level: 'error'
@@ -46,7 +45,7 @@ const winstonLogger = winston.createLogger({
       type: 'gekko',
       level: 'error'
     })
-    */
+
   ]
 });
 

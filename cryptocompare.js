@@ -5,6 +5,7 @@ const moment = require('moment');
 const dotenv = require("dotenv");
 dotenv.config({ path: ".env" });
 
+const minimist = require("minimist");
 const CCC = require('./src/ccc-streamer-utilities');
 const log = require('./src/log');
 const krakenMarket = require( './src/kraken-markets.json')
@@ -14,6 +15,13 @@ const tradeablePairsKrakenUrl = "https://api.kraken.com/0/public/AssetPairs";
 const fsymCc = "BTC";
 const tsymCc = "USD";
 const subscriptionUrl = "https://min-api.cryptocompare.com/data/subs?fsym=" + fsymCc + "&tsyms=" + tsymCc;
+
+let argv = minimist(process.argv.slice(2))
+
+let silent = false;
+if (argv["silent"]){
+  silent = true;
+}
 
 function Cryptocompare (){
 
@@ -60,7 +68,7 @@ function Cryptocompare (){
     return new Promise((resolve, reject) => {
       this.socket.on('connect', function(){
         var subs = [];
-        log.debug("we are connected");
+        log.info("wssocket is connected ... ")
         resolve();
       });
     });
@@ -79,7 +87,6 @@ function Cryptocompare (){
     //subs = [];
     //subs.push(subscribeToTrades(0,'ETH', 'EUR', 'Kraken'));
     this.socket.emit('SubAdd', { subs: subs });
-    log.debug(subs);
   }
 
   this.socket.on('m', function(currentData) {
@@ -95,7 +102,9 @@ function Cryptocompare (){
     if (newTrade && newTrade.price){
         const key = newTrade.asset + newTrade.currency+  newTrade.exchange;
         const ts = moment.unix(newTrade.timestamp)
-        // log.debug("cc got " + newTrade.asset + ' ' + newTrade.currency+ ' '+ newTrade.exchange + ' '+ ts.utc().format());
+        if (!silent){
+          log.debug("cc got " + newTrade.asset + ' ' + newTrade.currency+ ' '+ newTrade.exchange + ' '+ ts.utc().format());
+        }
         if (this.connected){
           broadcast(newTrade);
         }
@@ -199,10 +208,11 @@ function transformCurrentData(data) {
 function createServer(connectionid, serverpath) {
   ipc.config.id = connectionid;
   ipc.config.retry= 1500;
-  ipc.config.silent= false;
+  ipc.config.silent= silent;
 
   const promise = new Promise((resolve, reject) => {
     ipc.serve(serverpath, ()=> {
+      log.info("node ipc is running ... ")
       resolve(true);
     })
 
